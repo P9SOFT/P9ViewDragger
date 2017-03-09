@@ -1,13 +1,13 @@
-HJPhotoAlbumManager
+P9ViewDragger
 ============
 
-HJPhotoAlbumManager is handling module for iOS Photo Album based on Hydra framework.
+Developers can easily implement dragging view function with P9ViewDragger.
 
 # Installation
 
 You can download the latest framework files from our Release page.
-HJPhotoAlbumManager also available through CocoaPods. To install it simply add the following line to your Podfile.
-pod ‘HJPhotoAlbumManager’
+P9ViewDragger also available through CocoaPods. To install it simply add the following line to your Podfile.
+pod ‘P9ViewDragger’
 
 # License
 

@@ -17,9 +17,9 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        P9ViewDragger.defaultTracker().trackingView(self.godzillaImageView, parameters: nil, ready: nil, trackingHandler: nil, completion: nil)
+        P9ViewDragger.default().trackingView(self.godzillaImageView, parameters: nil, ready: nil, trackingHandler: nil, completion: nil)
         
-        P9ViewDragger.defaultTracker().trackingDecoyView(self.kingghidorahImageView, stageView: self.view, parameters: nil, ready: { (trackingView:UIView?) in
+        P9ViewDragger.default().trackingDecoyView(self.kingghidorahImageView, stageView: self.view, parameters: nil, ready: { (trackingView:UIView?) in
             self.kingghidorahImageView.alpha = 0.2
         }, trackingHandler: nil) { (trackingView:UIView?) in
             self.kingghidorahImageView.alpha = 1.0

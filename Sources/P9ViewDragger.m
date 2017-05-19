@@ -35,7 +35,7 @@
 
 @implementation P9ViewDragger
 
-- (id)init
+- (instancetype)init
 {
     if( (self = [super init]) != nil ) {
         if( (_trackingViewForKey = [NSMutableDictionary new]) == nil ) {
@@ -61,40 +61,40 @@
 
 - (void)addP9ViewDraggerGesturesFortrackingTargetInfoDict:(NSMutableDictionary *)trackingTargetInfoDict fromParameters:(NSDictionary *)parameters
 {
-    UIView *trackingView = [trackingTargetInfoDict objectForKey:kTrackingViewKey];
-    if( [[parameters objectForKey:P9ViewDraggerLockTranslateKey] boolValue] == NO ) {
+    UIView *trackingView = trackingTargetInfoDict[kTrackingViewKey];
+    if( [parameters[P9ViewDraggerLockTranslateKey] boolValue] == NO ) {
         UIPanGestureRecognizer *panGestureRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(transformTarget:)];
         panGestureRecognizer.maximumNumberOfTouches = 1;
         [trackingView addGestureRecognizer:panGestureRecognizer];
-        [trackingTargetInfoDict setObject:panGestureRecognizer forKey:kPanGestureKey];
+        trackingTargetInfoDict[kPanGestureKey] = panGestureRecognizer;
     }
-    if( [[parameters objectForKey:P9ViewDraggerLockScaleKey] boolValue] == NO ) {
+    if( [parameters[P9ViewDraggerLockScaleKey] boolValue] == NO ) {
         UIPinchGestureRecognizer *pinchGestureRecognizer = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(transformTarget:)];
         [trackingView addGestureRecognizer:pinchGestureRecognizer];
-        [trackingTargetInfoDict setObject:pinchGestureRecognizer forKey:kPinchGestureKey];
+        trackingTargetInfoDict[kPinchGestureKey] = pinchGestureRecognizer;
     }
-    if( [[parameters objectForKey:P9ViewDraggerLockRotateKey] boolValue] == NO ) {
+    if( [parameters[P9ViewDraggerLockRotateKey] boolValue] == NO ) {
         UIRotationGestureRecognizer *rotationGestureRecognizer = [[UIRotationGestureRecognizer alloc] initWithTarget:self action:@selector(transformTarget:)];
         [trackingView addGestureRecognizer:rotationGestureRecognizer];
-        [trackingTargetInfoDict setObject:rotationGestureRecognizer forKey:kRotationGestureKey];
+        trackingTargetInfoDict[kRotationGestureKey] = rotationGestureRecognizer;
     }
 }
 
 - (void)removeP9ViewDraggerGesturesFortrackingTargetInfoDict:(NSMutableDictionary *)trackingTargetInfoDict
 {
-    UIView *trackingView = [trackingTargetInfoDict objectForKey:kTrackingViewKey];
+    UIView *trackingView = trackingTargetInfoDict[kTrackingViewKey];
     if( trackingView == nil ) {
         return;
     }
-    UIPanGestureRecognizer *panGestureRecognizer = [trackingTargetInfoDict objectForKey:kPanGestureKey];
+    UIPanGestureRecognizer *panGestureRecognizer = trackingTargetInfoDict[kPanGestureKey];
     if( panGestureRecognizer != nil ) {
         [trackingView removeGestureRecognizer:panGestureRecognizer];
     }
-    UIPinchGestureRecognizer *pinchGestureRecognizer = [trackingTargetInfoDict objectForKey:kPinchGestureKey];
+    UIPinchGestureRecognizer *pinchGestureRecognizer = trackingTargetInfoDict[kPinchGestureKey];
     if( pinchGestureRecognizer != nil ) {
         [trackingView removeGestureRecognizer:pinchGestureRecognizer];
     }
-    UIRotationGestureRecognizer *rotationGestureRecognizer = [trackingTargetInfoDict objectForKey:kRotationGestureKey];
+    UIRotationGestureRecognizer *rotationGestureRecognizer = trackingTargetInfoDict[kRotationGestureKey];
     if( rotationGestureRecognizer != nil ) {
         [trackingView removeGestureRecognizer:rotationGestureRecognizer];
     }
@@ -114,14 +114,14 @@
     UIImageView *understudyView = nil;
     UIImage *snapshotImage = nil;
     @synchronized(self) {
-        NSMutableDictionary *trackingTargetDictInfo = [_trackingViewForKey objectForKey:key];
+        NSMutableDictionary *trackingTargetDictInfo = _trackingViewForKey[key];
         if( trackingTargetDictInfo != nil ) {
-            ready = [trackingTargetDictInfo objectForKey:kReadyBlockKey];
-            trackingHandler = [trackingTargetDictInfo objectForKey:kTrackingHandlerBlockKey];
-            completion = [trackingTargetDictInfo objectForKey:kCompletionBlockKey];
-            stageView = [trackingTargetDictInfo objectForKey:kStageViewKey];
-            understudyView = [trackingTargetDictInfo objectForKey:kTrackingUnderstudyViewKey];
-            snapshotImage = [trackingTargetDictInfo objectForKey:kTrackingSnapshotImageKey];
+            ready = trackingTargetDictInfo[kReadyBlockKey];
+            trackingHandler = trackingTargetDictInfo[kTrackingHandlerBlockKey];
+            completion = trackingTargetDictInfo[kCompletionBlockKey];
+            stageView = trackingTargetDictInfo[kStageViewKey];
+            understudyView = trackingTargetDictInfo[kTrackingUnderstudyViewKey];
+            snapshotImage = trackingTargetDictInfo[kTrackingSnapshotImageKey];
         }
     }
     UIView *trackingView = (understudyView != nil) ? understudyView : targetView;;
@@ -144,7 +144,7 @@
                 understudyView.image = snapshotImage;
                 [stageView addSubview:understudyView];
                 @synchronized(self) {
-                    [[_trackingViewForKey objectForKey:key] setObject:understudyView forKey:kTrackingUnderstudyViewKey];
+                    _trackingViewForKey[key][kTrackingUnderstudyViewKey] = understudyView;
                 }
                 trackingView = understudyView;
             }
@@ -160,7 +160,7 @@
             } else {
                 transform = CATransform3DConcat(trackingView.layer.transform, CATransform3DInvert(trackingView.layer.transform));
                 if( [gestureRecognizer isKindOfClass:[UIPinchGestureRecognizer class]] == YES ) {
-                    CGFloat scale = [(UIPinchGestureRecognizer *)gestureRecognizer scale];
+                    CGFloat scale = ((UIPinchGestureRecognizer *)gestureRecognizer).scale;
                     transform = CATransform3DConcat(transform, CATransform3DMakeScale(scale, scale, 1));
                     ((UIPinchGestureRecognizer *)gestureRecognizer).scale = 1.0;
                 } else if( [gestureRecognizer isKindOfClass:[UIRotationGestureRecognizer class]] == YES ) {
@@ -183,7 +183,7 @@
             [understudyView removeFromSuperview];
             understudyView.layer.transform = CATransform3DIdentity;
             @synchronized(self) {
-                [[_trackingViewForKey objectForKey:key] removeObjectForKey:kTrackingUnderstudyViewKey];
+                [_trackingViewForKey[key] removeObjectForKey:kTrackingUnderstudyViewKey];
             }
             break;
         default :
@@ -191,7 +191,7 @@
     }
 }
 
-+ (P9ViewDragger *)defaultTracker
++ (P9ViewDragger *)defaultP9ViewDragger
 {
     static dispatch_once_t once;
     static P9ViewDragger *sharedInstance;
@@ -213,21 +213,21 @@
         return NO;
     }
     
-    [trackingTargetInfoDict setObject:trackingView forKey:kTrackingViewKey];
-    [trackingTargetInfoDict setObject:@(userInteraction) forKey:kOriginalUserInteractionKey];
+    trackingTargetInfoDict[kTrackingViewKey] = trackingView;
+    trackingTargetInfoDict[kOriginalUserInteractionKey] = @(userInteraction);
     [self addP9ViewDraggerGesturesFortrackingTargetInfoDict:trackingTargetInfoDict fromParameters:parameters];
     if( ready != nil ) {
-        [trackingTargetInfoDict setObject:ready forKey:kReadyBlockKey];
+        trackingTargetInfoDict[kReadyBlockKey] = ready;
     }
     if( trackingHandler != nil ) {
-        [trackingTargetInfoDict setObject:trackingHandler forKey:kTrackingHandlerBlockKey];
+        trackingTargetInfoDict[kTrackingHandlerBlockKey] = trackingHandler;
     }
     if( completion != nil ) {
-        [trackingTargetInfoDict setObject:completion forKey:kCompletionBlockKey];
+        trackingTargetInfoDict[kCompletionBlockKey] = completion;
     }
     
     @synchronized(self) {
-        [_trackingViewForKey setObject:trackingTargetInfoDict forKey:key];
+        _trackingViewForKey[key] = trackingTargetInfoDict;
     }
     
     return YES;
@@ -248,25 +248,25 @@
         return NO;
     }
     
-    [trackingTargetInfoDict setObject:trackingView forKey:kTrackingViewKey];
-    [trackingTargetInfoDict setObject:@(userInteraction) forKey:kOriginalUserInteractionKey];
-    [trackingTargetInfoDict setObject:currentStageView forKey:kStageViewKey];
-    if( [parameters objectForKey:P9ViewDraggerSnapshotImageKey] != nil ) {
-        [trackingTargetInfoDict setObject:[parameters objectForKey:P9ViewDraggerSnapshotImageKey] forKey:kTrackingSnapshotImageKey];
+    trackingTargetInfoDict[kTrackingViewKey] = trackingView;
+    trackingTargetInfoDict[kOriginalUserInteractionKey] = @(userInteraction);
+    trackingTargetInfoDict[kStageViewKey] = currentStageView;
+    if( parameters[P9ViewDraggerSnapshotImageKey] != nil ) {
+        trackingTargetInfoDict[kTrackingSnapshotImageKey] = parameters[P9ViewDraggerSnapshotImageKey];
     }
     [self addP9ViewDraggerGesturesFortrackingTargetInfoDict:trackingTargetInfoDict fromParameters:parameters];
     if( ready != nil ) {
-        [trackingTargetInfoDict setObject:ready forKey:kReadyBlockKey];
+        trackingTargetInfoDict[kReadyBlockKey] = ready;
     }
     if( trackingHandler != nil ) {
-        [trackingTargetInfoDict setObject:trackingHandler forKey:kTrackingHandlerBlockKey];
+        trackingTargetInfoDict[kTrackingHandlerBlockKey] = trackingHandler;
     }
     if( completion != nil ) {
-        [trackingTargetInfoDict setObject:completion forKey:kCompletionBlockKey];
+        trackingTargetInfoDict[kCompletionBlockKey] = completion;
     }
     
     @synchronized(self) {
-        [_trackingViewForKey setObject:trackingTargetInfoDict forKey:key];
+        _trackingViewForKey[key] = trackingTargetInfoDict;
     }
     
     return YES;
@@ -280,11 +280,11 @@
     }
     NSMutableDictionary *trackingTargetInfoDict = nil;
     @synchronized(self) {
-        if( (trackingTargetInfoDict = [_trackingViewForKey objectForKey:key]) != nil ) {
+        if( (trackingTargetInfoDict = _trackingViewForKey[key]) != nil ) {
             [_trackingViewForKey removeObjectForKey:key];
         }
     }
-    [[trackingTargetInfoDict objectForKey:kTrackingViewKey] setUserInteractionEnabled:[[trackingTargetInfoDict objectForKey:kOriginalUserInteractionKey] boolValue]];
+    [trackingTargetInfoDict[kTrackingViewKey] setUserInteractionEnabled:[trackingTargetInfoDict[kOriginalUserInteractionKey] boolValue]];
     [self removeP9ViewDraggerGesturesFortrackingTargetInfoDict:trackingTargetInfoDict];
 }
 
@@ -292,12 +292,12 @@
 {
     NSArray *allTargets = nil;
     @synchronized(self) {
-        if( (allTargets = [_trackingViewForKey allValues]) != nil ) {
+        if( (allTargets = _trackingViewForKey.allValues) != nil ) {
             [_trackingViewForKey removeAllObjects];
         }
     }
     for( NSMutableDictionary *trackingTargetInfoDict in allTargets ) {
-        [[trackingTargetInfoDict objectForKey:kTrackingViewKey] setUserInteractionEnabled:[[trackingTargetInfoDict objectForKey:kOriginalUserInteractionKey] boolValue]];
+        [trackingTargetInfoDict[kTrackingViewKey] setUserInteractionEnabled:[trackingTargetInfoDict[kOriginalUserInteractionKey] boolValue]];
         [self removeP9ViewDraggerGesturesFortrackingTargetInfoDict:trackingTargetInfoDict];
     }
 }

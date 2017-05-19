@@ -31,7 +31,7 @@
  Block code definition to handling when tracking view begin, doing and end.
  Parameter UIView is actual moving view object when tracking.
  */
-typedef void(^P9ViewDraggerBlock)(UIView *);
+typedef void(^P9ViewDraggerBlock)(UIView * _Nonnull);
 
 /*!
  P9ViewDragger
@@ -44,7 +44,7 @@ typedef void(^P9ViewDraggerBlock)(UIView *);
  Get shared default singleton module.
  @returns Return singleton P9ViewDragger object
  */
-+ (P9ViewDragger *)defaultTracker;
++ (P9ViewDragger * _Nonnull)defaultP9ViewDragger;
 
 /*!
  Register view to P9ViewDragger. After then it'll move with touch gesture.
@@ -57,7 +57,7 @@ typedef void(^P9ViewDraggerBlock)(UIView *);
  @param completion This block will call when tracking end once.
  @returns Return the result of register succeed or not.
  */
-- (BOOL)trackingView:(UIView *)trackingView parameters:(NSDictionary *)parameters ready:(P9ViewDraggerBlock)ready trackingHandler:(P9ViewDraggerBlock)trackingHandler completion:(P9ViewDraggerBlock)completion;
+- (BOOL)trackingView:(UIView * _Nullable)trackingView parameters:(NSDictionary * _Nullable)parameters ready:(P9ViewDraggerBlock _Nullable)ready trackingHandler:(P9ViewDraggerBlock _Nullable)trackingHandler completion:(P9ViewDraggerBlock _Nullable)completion;
 
 /*!
  Register view to P9ViewDragger. After then it'll move with touch gesture.
@@ -72,13 +72,13 @@ typedef void(^P9ViewDraggerBlock)(UIView *);
  @param completion This block will call when tracking end once.
  @returns Return the result of register succeed or not.
  */
-- (BOOL)trackingDecoyView:(UIView *)trackingView stageView:(UIView *)stageView parameters:(NSDictionary *)parameters ready:(P9ViewDraggerBlock)ready trackingHandler:(P9ViewDraggerBlock)trackingHandler completion:(P9ViewDraggerBlock)completion;
+- (BOOL)trackingDecoyView:(UIView * _Nullable)trackingView stageView:(UIView * _Nullable)stageView parameters:(NSDictionary * _Nullable)parameters ready:(P9ViewDraggerBlock _Nullable)ready trackingHandler:(P9ViewDraggerBlock _Nullable)trackingHandler completion:(P9ViewDraggerBlock _Nullable)completion;
 
 /*!
  Unregister view from tracking.
  @param trackingView View object to untracking.
  */
-- (void)untrackingView:(UIView *)trackingView;
+- (void)untrackingView:(UIView * _Nullable)trackingView;
 
 /*!
  Unregister all tracking views on P9ViewDragger.
@@ -88,6 +88,6 @@ typedef void(^P9ViewDraggerBlock)(UIView *);
 /*!
  Decoy view will create on defaultStageView if not specified directly when it call.
  */
-@property (nonatomic, strong) UIView *defaultStageView;
+@property (nonatomic, strong) UIView * _Nullable defaultStageView;
 
 @end

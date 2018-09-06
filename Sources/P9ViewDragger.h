@@ -13,19 +13,27 @@
 /*!
  Set this key to avoid translate action when tracking.
  */
-#define     P9ViewDraggerLockTranslateKey     @"P9ViewDraggerLockTranslateKey"
+#define     P9ViewDraggerLockTranslateKey           @"P9ViewDraggerLockTranslateKey"
 /*!
  Set this key to avoid scale action when tracking.
  */
-#define     P9ViewDraggerLockScaleKey         @"P9ViewDraggerLockScaleKey"
+#define     P9ViewDraggerLockScaleKey               @"P9ViewDraggerLockScaleKey"
 /*!
  Set this key to avoid rotate action when tracking.
  */
-#define     P9ViewDraggerLockRotateKey        @"P9ViewDraggerLockRotateKey"
+#define     P9ViewDraggerLockRotateKey              @"P9ViewDraggerLockRotateKey"
 /*!
  Set this key with UIImage object then setted image will use preview image when tracking by decoy mode.
  */
-#define     P9ViewDraggerSnapshotImageKey     @"P9ViewDraggerSnapshotImageKey"
+#define     P9ViewDraggerSnapshotImageKey           @"P9ViewDraggerSnapshotImageKey"
+/*!
+ Set this key with UIView object then given view will use when tracking by decoy mode.
+ */
+#define     P9ViewDraggerDecoyViewKey               @"P9ViewDraggerDecoyViewKey"
+/*!
+ Set this key to avoid removing from stage that given decoy view after dragging action.
+ */
+#define     P9ViewDraggerRemainDecoyViewOnStageKey  @"P9ViewDraggerRemainDecoyViewOnStageKey"
 
 /*!
  Block code definition to handling when tracking view begin, doing and end.

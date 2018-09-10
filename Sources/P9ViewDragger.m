@@ -23,7 +23,7 @@
 #define     kRotationGestureKey             @"roationGestureKey"
 #define     kOriginalUserInteractionKey     @"originalUserInteractionKey"
 
-@interface P9ViewDragger ()
+@interface P9ViewDragger () <UIGestureRecognizerDelegate>
 {
     NSMutableDictionary *_trackingViewForKey;
 }
@@ -72,11 +72,13 @@
     }
     if( [parameters[P9ViewDraggerLockScaleKey] boolValue] == NO ) {
         UIPinchGestureRecognizer *pinchGestureRecognizer = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(transformTarget:)];
+        pinchGestureRecognizer.delegate = self;
         [trackingView addGestureRecognizer:pinchGestureRecognizer];
         trackingTargetInfoDict[kPinchGestureKey] = pinchGestureRecognizer;
     }
     if( [parameters[P9ViewDraggerLockRotateKey] boolValue] == NO ) {
         UIRotationGestureRecognizer *rotationGestureRecognizer = [[UIRotationGestureRecognizer alloc] initWithTarget:self action:@selector(transformTarget:)];
+        rotationGestureRecognizer.delegate = self;
         [trackingView addGestureRecognizer:rotationGestureRecognizer];
         trackingTargetInfoDict[kRotationGestureKey] = rotationGestureRecognizer;
     }
@@ -176,7 +178,8 @@
                     CGFloat scale = ((UIPinchGestureRecognizer *)gestureRecognizer).scale;
                     transform = CATransform3DConcat(transform, CATransform3DMakeScale(scale, scale, 1));
                     ((UIPinchGestureRecognizer *)gestureRecognizer).scale = 1.0;
-                } else if( [gestureRecognizer isKindOfClass:[UIRotationGestureRecognizer class]] == YES ) {
+                }
+                if( [gestureRecognizer isKindOfClass:[UIRotationGestureRecognizer class]] == YES ) {
                     CGFloat rotation = ((UIRotationGestureRecognizer *)gestureRecognizer).rotation;
                     transform = CATransform3DConcat(transform, CATransform3DMakeRotation(rotation, 0.0, 0.0, 1.0));
                     ((UIRotationGestureRecognizer *)gestureRecognizer).rotation = 0.0;
@@ -327,6 +330,14 @@
         [trackingTargetInfoDict[kTrackingViewKey] setUserInteractionEnabled:[trackingTargetInfoDict[kOriginalUserInteractionKey] boolValue]];
         [self removeP9ViewDraggerGesturesFortrackingTargetInfoDict:trackingTargetInfoDict];
     }
+}
+
+#pragma mark -
+#pragma mark UIGestureRecognizerDelegate
+
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer
+{
+    return YES;
 }
 
 @end

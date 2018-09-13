@@ -13,6 +13,8 @@
 #define     kStageViewKey                   @"stageViewKey"
 #define     kTrackingUnderstudyViewKey      @"trackingUnderstudyViewKey"
 #define     kTrackingSnapshotImageKey       @"trackingSnapshotImageKey"
+#define     kTrackingDecoyViewKey           @"trackingDecoyViewKey"
+#define     kRemainDecoyViewKey             @"remainDecoyViewKey"
 #define     kReadyBlockKey                  @"readyBlockKey"
 #define     kTrackingHandlerBlockKey        @"trackingHandlerBlockKey"
 #define     kCompletionBlockKey             @"completionBlockKey"
@@ -21,7 +23,7 @@
 #define     kRotationGestureKey             @"roationGestureKey"
 #define     kOriginalUserInteractionKey     @"originalUserInteractionKey"
 
-@interface P9ViewDragger ()
+@interface P9ViewDragger () <UIGestureRecognizerDelegate>
 {
     NSMutableDictionary *_trackingViewForKey;
 }
@@ -70,11 +72,13 @@
     }
     if( [parameters[P9ViewDraggerLockScaleKey] boolValue] == NO ) {
         UIPinchGestureRecognizer *pinchGestureRecognizer = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(transformTarget:)];
+        pinchGestureRecognizer.delegate = self;
         [trackingView addGestureRecognizer:pinchGestureRecognizer];
         trackingTargetInfoDict[kPinchGestureKey] = pinchGestureRecognizer;
     }
     if( [parameters[P9ViewDraggerLockRotateKey] boolValue] == NO ) {
         UIRotationGestureRecognizer *rotationGestureRecognizer = [[UIRotationGestureRecognizer alloc] initWithTarget:self action:@selector(transformTarget:)];
+        rotationGestureRecognizer.delegate = self;
         [trackingView addGestureRecognizer:rotationGestureRecognizer];
         trackingTargetInfoDict[kRotationGestureKey] = rotationGestureRecognizer;
     }
@@ -111,8 +115,10 @@
     P9ViewDraggerBlock trackingHandler = nil;
     P9ViewDraggerBlock completion = nil;
     UIView *stageView = nil;
-    UIImageView *understudyView = nil;
+    UIView *understudyView = nil;
     UIImage *snapshotImage = nil;
+    BOOL usingDecoyView = NO;
+    BOOL remainDecoyView = NO;
     @synchronized(self) {
         NSMutableDictionary *trackingTargetDictInfo = _trackingViewForKey[key];
         if( trackingTargetDictInfo != nil ) {
@@ -121,7 +127,12 @@
             completion = trackingTargetDictInfo[kCompletionBlockKey];
             stageView = trackingTargetDictInfo[kStageViewKey];
             understudyView = trackingTargetDictInfo[kTrackingUnderstudyViewKey];
+            if( understudyView == nil ) {
+                understudyView = trackingTargetDictInfo[kTrackingDecoyViewKey];
+            }
             snapshotImage = trackingTargetDictInfo[kTrackingSnapshotImageKey];
+            usingDecoyView = (trackingTargetDictInfo[kTrackingDecoyViewKey] != nil);
+            remainDecoyView = [trackingTargetDictInfo[kRemainDecoyViewKey] boolValue];
         }
     }
     UIView *trackingView = (understudyView != nil) ? understudyView : targetView;;
@@ -129,22 +140,26 @@
     switch( (UIGestureRecognizerState)[gestureRecognizer state] ) {
         case UIGestureRecognizerStateBegan :
             if( stageView != nil ) {
-                if( (understudyView = [[UIImageView alloc] init]) != nil ) {
-                    understudyView.userInteractionEnabled = NO;
+                if( understudyView == nil ) {
+                    UIImageView *imageView = [[UIImageView alloc] init];
+                    imageView.userInteractionEnabled = NO;
+                    if( snapshotImage == nil ) {
+                        UIGraphicsBeginImageContextWithOptions(targetView.bounds.size, false, [UIScreen mainScreen].scale);
+                        [targetView drawViewHierarchyInRect:targetView.bounds afterScreenUpdates:YES];
+                        snapshotImage = UIGraphicsGetImageFromCurrentImageContext();
+                        UIGraphicsEndImageContext();
+                    }
+                    imageView.image = snapshotImage;
+                    understudyView = imageView;
+                }
+                if( understudyView != nil ) {
                     understudyView.bounds = targetView.bounds;
                     understudyView.center = [stageView convertPoint:targetView.center fromView:((targetView.superview != nil) ? targetView.superview : targetView)];
                     understudyView.layer.transform = targetView.layer.transform;
-                }
-                if( snapshotImage == nil ) {
-                    UIGraphicsBeginImageContextWithOptions(targetView.bounds.size, false, [UIScreen mainScreen].scale);
-                    [targetView drawViewHierarchyInRect:targetView.bounds afterScreenUpdates:YES];
-                    snapshotImage = UIGraphicsGetImageFromCurrentImageContext();
-                    UIGraphicsEndImageContext();
-                }
-                understudyView.image = snapshotImage;
-                [stageView addSubview:understudyView];
-                @synchronized(self) {
-                    _trackingViewForKey[key][kTrackingUnderstudyViewKey] = understudyView;
+                    [stageView addSubview:understudyView];
+                    @synchronized(self) {
+                        _trackingViewForKey[key][kTrackingUnderstudyViewKey] = understudyView;
+                    }
                 }
                 trackingView = understudyView;
             }
@@ -163,7 +178,8 @@
                     CGFloat scale = ((UIPinchGestureRecognizer *)gestureRecognizer).scale;
                     transform = CATransform3DConcat(transform, CATransform3DMakeScale(scale, scale, 1));
                     ((UIPinchGestureRecognizer *)gestureRecognizer).scale = 1.0;
-                } else if( [gestureRecognizer isKindOfClass:[UIRotationGestureRecognizer class]] == YES ) {
+                }
+                if( [gestureRecognizer isKindOfClass:[UIRotationGestureRecognizer class]] == YES ) {
                     CGFloat rotation = ((UIRotationGestureRecognizer *)gestureRecognizer).rotation;
                     transform = CATransform3DConcat(transform, CATransform3DMakeRotation(rotation, 0.0, 0.0, 1.0));
                     ((UIRotationGestureRecognizer *)gestureRecognizer).rotation = 0.0;
@@ -180,8 +196,16 @@
             if( completion != nil ) {
                 completion(trackingView);
             }
-            [understudyView removeFromSuperview];
-            understudyView.layer.transform = CATransform3DIdentity;
+            if( understudyView != nil ) {
+                if( usingDecoyView == YES ) {
+                    if( remainDecoyView == NO ) {
+                        [understudyView removeFromSuperview];
+                    }
+                } else {
+                    [understudyView removeFromSuperview];
+                    understudyView.layer.transform = CATransform3DIdentity;
+                }
+            }
             @synchronized(self) {
                 [_trackingViewForKey[key] removeObjectForKey:kTrackingUnderstudyViewKey];
             }
@@ -254,6 +278,12 @@
     if( parameters[P9ViewDraggerSnapshotImageKey] != nil ) {
         trackingTargetInfoDict[kTrackingSnapshotImageKey] = parameters[P9ViewDraggerSnapshotImageKey];
     }
+    if( parameters[P9ViewDraggerDecoyViewKey] != nil ) {
+        trackingTargetInfoDict[kTrackingDecoyViewKey] = parameters[P9ViewDraggerDecoyViewKey];
+    }
+    if( parameters[P9ViewDraggerRemainDecoyViewOnStageKey] != nil ) {
+        trackingTargetInfoDict[kRemainDecoyViewKey] = ([parameters[P9ViewDraggerRemainDecoyViewOnStageKey] boolValue] == YES) ? @"Y" : @"N";
+    }
     [self addP9ViewDraggerGesturesFortrackingTargetInfoDict:trackingTargetInfoDict fromParameters:parameters];
     if( ready != nil ) {
         trackingTargetInfoDict[kReadyBlockKey] = ready;
@@ -300,6 +330,14 @@
         [trackingTargetInfoDict[kTrackingViewKey] setUserInteractionEnabled:[trackingTargetInfoDict[kOriginalUserInteractionKey] boolValue]];
         [self removeP9ViewDraggerGesturesFortrackingTargetInfoDict:trackingTargetInfoDict];
     }
+}
+
+#pragma mark -
+#pragma mark UIGestureRecognizerDelegate
+
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer
+{
+    return YES;
 }
 
 @end

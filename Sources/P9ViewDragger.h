@@ -34,6 +34,10 @@
  Set this key to avoid removing from stage that given decoy view after dragging action.
  */
 #define     P9ViewDraggerRemainDecoyViewOnStageKey  @"P9ViewDraggerRemainDecoyViewOnStageKey"
+/*!
+ Set this key to start handling when touch down. If not, event will start when start finger moving.
+ */
+#define     P9ViewDraggerStartWhenTouchDownKey  @"P9ViewDraggerStartWhenTouchDownKey"
 
 /*!
  Block code definition to handling when tracking view begin, doing and end.

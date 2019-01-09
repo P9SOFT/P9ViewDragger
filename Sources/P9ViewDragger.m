@@ -18,10 +18,12 @@
 #define     kReadyBlockKey                  @"readyBlockKey"
 #define     kTrackingHandlerBlockKey        @"trackingHandlerBlockKey"
 #define     kCompletionBlockKey             @"completionBlockKey"
+#define     kPressGestureKey                @"pressGestureKey"
 #define     kPanGestureKey                  @"panGestureKey"
 #define     kPinchGestureKey                @"pinchGestureKey"
 #define     kRotationGestureKey             @"roationGestureKey"
 #define     kOriginalUserInteractionKey     @"originalUserInteractionKey"
+#define     kActiveGestureCountKey          @"activeGestureCountKey"
 
 @interface P9ViewDragger () <UIGestureRecognizerDelegate>
 {
@@ -64,9 +66,17 @@
 - (void)addP9ViewDraggerGesturesFortrackingTargetInfoDict:(NSMutableDictionary *)trackingTargetInfoDict fromParameters:(NSDictionary *)parameters
 {
     UIView *trackingView = trackingTargetInfoDict[kTrackingViewKey];
+    if( [parameters[P9ViewDraggerStartWhenTouchDownKey] boolValue] == YES ) {
+        UILongPressGestureRecognizer *pressGestureRecognizer = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(transformTarget:)];
+        pressGestureRecognizer.minimumPressDuration = 0;
+        pressGestureRecognizer.delegate = self;
+        [trackingView addGestureRecognizer:pressGestureRecognizer];
+        trackingTargetInfoDict[kPressGestureKey] = pressGestureRecognizer;
+    }
     if( [parameters[P9ViewDraggerLockTranslateKey] boolValue] == NO ) {
         UIPanGestureRecognizer *panGestureRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(transformTarget:)];
         panGestureRecognizer.maximumNumberOfTouches = 1;
+        panGestureRecognizer.delegate = self;
         [trackingView addGestureRecognizer:panGestureRecognizer];
         trackingTargetInfoDict[kPanGestureKey] = panGestureRecognizer;
     }
@@ -89,6 +99,10 @@
     UIView *trackingView = trackingTargetInfoDict[kTrackingViewKey];
     if( trackingView == nil ) {
         return;
+    }
+    UILongPressGestureRecognizer *pressGestureRecognizer = trackingTargetInfoDict[kPressGestureKey];
+    if( pressGestureRecognizer != nil ) {
+        [trackingView removeGestureRecognizer:pressGestureRecognizer];
     }
     UIPanGestureRecognizer *panGestureRecognizer = trackingTargetInfoDict[kPanGestureKey];
     if( panGestureRecognizer != nil ) {
@@ -135,10 +149,17 @@
             remainDecoyView = [trackingTargetDictInfo[kRemainDecoyViewKey] boolValue];
         }
     }
+    NSNumber *activeGestureCount = _trackingViewForKey[key][kActiveGestureCountKey];
     UIView *trackingView = (understudyView != nil) ? understudyView : targetView;;
     CATransform3D transform;
     switch( (UIGestureRecognizerState)[gestureRecognizer state] ) {
         case UIGestureRecognizerStateBegan :
+            if( activeGestureCount.integerValue <= 0 ) {
+                _trackingViewForKey[key][kActiveGestureCountKey] = @(1);
+            } else {
+                _trackingViewForKey[key][kActiveGestureCountKey] = @(activeGestureCount.integerValue+1);
+                break;
+            }
             if( stageView != nil ) {
                 if( understudyView == nil ) {
                     UIImageView *imageView = [[UIImageView alloc] init];
@@ -193,6 +214,14 @@
             break;
         case UIGestureRecognizerStateEnded :
         case UIGestureRecognizerStateFailed :
+            if( activeGestureCount.integerValue <= 0 ) {
+                break;
+            }
+            activeGestureCount = @(activeGestureCount.integerValue - 1);
+            _trackingViewForKey[key][kActiveGestureCountKey] = activeGestureCount;
+            if( activeGestureCount.integerValue > 0 ) {
+                break;
+            }
             if( completion != nil ) {
                 completion(trackingView);
             }

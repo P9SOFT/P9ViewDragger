@@ -214,12 +214,13 @@
             break;
         case UIGestureRecognizerStateEnded :
         case UIGestureRecognizerStateFailed :
+            if( activeGestureCount.integerValue <= 0 ) {
+                break;
+            }
+            activeGestureCount = @(activeGestureCount.integerValue - 1);
+            _trackingViewForKey[key][kActiveGestureCountKey] = activeGestureCount;
             if( activeGestureCount.integerValue > 0 ) {
-                activeGestureCount = @(activeGestureCount.integerValue - 1);
-                _trackingViewForKey[key][kActiveGestureCountKey] = activeGestureCount;
-                if( activeGestureCount.integerValue > 0 ) {
-                    break;
-                }
+                break;
             }
             if( completion != nil ) {
                 completion(trackingView);

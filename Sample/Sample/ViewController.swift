@@ -19,9 +19,15 @@ class ViewController: UIViewController {
         
         P9ViewDragger.default().trackingView(self.godzillaImageView, parameters: nil, ready: nil, trackingHandler: nil, completion: nil)
         
-        P9ViewDragger.default().trackingDecoyView(self.kingghidorahImageView, stageView: self.view, parameters: nil, ready: { (trackingView:UIView?) in
+        P9ViewDragger.default().trackingDecoyView(self.kingghidorahImageView, stageView: self.view, parameters: nil, ready: { [weak self] (trackingView:UIView?) in
+            guard let `self` = self else {
+                return
+            }
             self.kingghidorahImageView.alpha = 0.2
-        }, trackingHandler: nil) { (trackingView:UIView?) in
+        }, trackingHandler: nil) { [weak self] (trackingView:UIView?) in
+            guard let `self` = self else {
+                return
+            }
             self.kingghidorahImageView.alpha = 1.0
             self.view.bringSubview(toFront: self.kingghidorahImageView)
             if trackingView != nil {

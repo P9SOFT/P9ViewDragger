@@ -25,14 +25,12 @@ class ViewController: UIViewController {
             }
             self.kingghidorahImageView.alpha = 0.2
         }, trackingHandler: nil) { [weak self] (trackingView:UIView?) in
-            guard let `self` = self else {
+            guard let `self` = self, let trackingView = trackingView else {
                 return
             }
             self.kingghidorahImageView.alpha = 1.0
-            self.view.bringSubview(toFront: self.kingghidorahImageView)
-            if trackingView != nil {
-                self.kingghidorahImageView.transform = trackingView!.transform
-            }
+            self.view.bringSubviewToFront(self.kingghidorahImageView)
+            self.kingghidorahImageView.transform = trackingView.transform
         }
     }
 

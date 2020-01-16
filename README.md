@@ -1,12 +1,12 @@
 P9ViewDragger
 ============
 
-Developers can easily implement dragging view function with P9ViewDragger.
+You can easily implement dragging view function with P9ViewDragger.
 
 # Installation
 
 You can download the latest framework files from our Release page.
-P9ViewDragger also available through CocoaPods. To install it simply add the following line to your Podfile.
+P9ViewDragger also available through the CocoaPods. You simply add the following line to your Podfile to install.
 pod ‘P9ViewDragger’
 
 # Play

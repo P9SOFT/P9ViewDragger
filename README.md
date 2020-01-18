@@ -12,13 +12,13 @@ pod ‘P9ViewDragger’
 # Play
 
 
-Do following line to drag, rotate and scale for your UIView.
+Call `trackingView()` method as below for dragging, rotating and scaling animations for your UIView.
 
 ```swift
 P9ViewDragger.default().trackingView(yourView, parameters: nil, ready: nil, trackingHandler: nil, completion: nil)
 ```
 
-That's all you need to do to drag, rotate and scale your UIView.
+That's all you need to do to drag, rotate and scale for your UIView.
 
 Dragging, Ratating and Scaling features in the P9ViewDragger are enabled by default.
 You can enable/disable each feature by below.
